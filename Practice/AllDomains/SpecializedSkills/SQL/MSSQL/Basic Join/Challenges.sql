@@ -33,6 +33,26 @@ group by x.ChallengeCount
 having count(x.challengecount) > 1)
 order by 3 desc, 1
 
+
+WITH temp AS (
+SELECT H.HACKER_ID,H.NAME,COUNT(C.CHALLENGE_ID) AS CNT 
+FROM HACKERS H 
+INNER JOIN CHALLENGES C 
+ON H.HACKER_ID = C.HACKER_ID
+GROUP BY H.HACKER_ID,H.NAME
+ORDER BY COUNT(C.CHALLENGE_ID) DESC , HACKER_ID )
+SELECT HACKER_ID,NAME, CNT
+FROM temp 
+WHERE CNT NOT IN 
+    (SELECT CNT FROM (
+        SELECT 
+        CNT, 
+        rank() OVER(ORDER BY CNT DESC) AS rnk 
+     FROM (
+         SELECT CNT,COUNT(*) 
+         FROM temp GROUP BY CNT HAVING COUNT(*)>1  
+     )x )z WHERE rnk<>1 );
+   
 /* Hackerrank accepted solution:
 select C.Hacker_id, H.Name, count(challenge_id)
 from Hackers H Inner Join Challenges C
